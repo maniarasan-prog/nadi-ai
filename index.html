@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NADI-AI v2 — The Ancient-Future Healer</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;700&display=swap');
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Work Sans', sans-serif;
+      background: linear-gradient(135deg, #7e5e35 0%, #643a19 60%, #003441 100%);
+      color: #eef6f8;
+      text-align: center;
+      overflow-x: hidden;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-top: 40px;
+      color: #d7b77a;
+      text-shadow: 0 0 12px #00e5ff;
+    }
+    .subtitle {
+      font-size: 1.2rem;
+      margin: 10px 0 40px;
+      color: #00e5ff;
+      letter-spacing: 1px;
+    }
+    #intro {
+      position: relative;
+      height: 300px;
+    }
+    #intro h1, #intro .subtitle {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: introAnim 2s forwards;
+    }
+    #intro .subtitle {
+      animation-delay: 1s;
+    }
+    @keyframes introAnim {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    #scanSection {
+      display: none;
+      margin-top: 40px;
+    }
+    #pulseCanvas {
+      width: 100%;
+      height: 200px;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid #00e5ff;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    #hologram {
+      margin: 30px auto;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: #00e5ff;
+      box-shadow: 0 0 20px #00e5ff;
+      animation: spin 6s linear infinite;
+    }
+    @keyframes spin {
+      from { transform: rotateY(0deg) rotateX(0deg) rotateZ(0deg); }
+      to { transform: rotateY(360deg) rotateX(360deg) rotateZ(360deg); }
+    }
+    button {
+      background: #d7b77a;
+      border: none;
+      padding: 14px 30px;
+      font-size: 1rem;
+      color: #003441;
+      border-radius: 25px;
+      cursor: pointer;
+      box-shadow: 0 0 12px #00e5ff;
+      transition: background 0.3s, transform 0.3s;
+    }
+    button:hover {
+      background: #c5a760;
+      transform: scale(1.05);
+    }
+    .report {
+      margin-top: 30px;
+      padding: 25px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 15px;
+      text-align: left;
+      color: #eef6f8;
+      box-shadow: 0 0 20px rgba(0, 188, 212, 0.4);
+      display: inline-block;
+      max-width: 600px;
+      width: 100%;
+    }
+    .report h2 {
+      color: #00e5ff;
+      margin-top: 0;
+    }
+    .report p {
+      margin: 10px 0;
+      font-size: 1rem;
+    }
+    .highlight {
+      color: #d7b77a;
+      font-weight: bold;
+    }
+    @media (max-width: 600px) {
+      h1 { font-size: 2rem; }
+      button { width: 100%; }
+      .report { padding: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="intro">
+      <h1>NADI-AI v2 — The Ancient-Future Healer</h1>
+      <div class="subtitle" style="margin-top:20px;font-size:0.9rem;">🔹 Created by MV — Visionary Innovator 🔹</div>
+    </div>
+    <div id="scanSection">
+      <div id="pulseCanvas"></div>
+      <div id="hologram"></div>
+      <button onclick="startScan()">Begin Pulse Analysis</button>
+      <div class="report" id="report"></div>
+    </div>
+  </div>
+
+  <audio id="heartbeatSound" src="https://freesound.org/data/previews/499/499435_10278108-lq.mp3"></audio>
+
+  <script>
+    // Voice synthesis
+    function speak(text, lang) {
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = lang;
+      utter.rate = 1;
+      utter.pitch = 1;
+      utter.voice = speechSynthesis.getVoices().find(v => v.lang.startsWith(lang)) || null;
+      speechSynthesis.speak(utter);
+    }
+
+    // Responsive intro-to-scan transition
+    setTimeout(() => {
+      document.getElementById('intro').style.display = 'none';
+      document.getElementById('scanSection').style.display = 'block';
+    }, 3500);
+
+    // Pulse wave animation (canvas)
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    document.getElementById('pulseCanvas').appendChild(canvas);
+    function resizeCanvas() {
+      canvas.width = document.getElementById('pulseCanvas').clientWidth;
+      canvas.height = document.getElementById('pulseCanvas').clientHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    let t = 0;
+    function drawWave() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.beginPath();
+      const amplitude = 30;
+      const period = 120;
+      for(let x = 0; x < canvas.width; x++) {
+        const y = canvas.height/2 + amplitude * Math.sin((t + x)/period);
+        ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = '#00e5ff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      t += 4;
+      requestAnimationFrame(drawWave);
+    }
+
+    function startScan() {
+      document.getElementById('heartbeatSound').play();
+      const report = document.getElementById('report');
+      report.innerHTML = '<p>Collecting pulse data... <em>துடிப்பு தரவு சேகரிக்கப்படுகிறது...</em></p>';
+
+      setTimeout(() => {
+        const pulse = Math.floor(Math.random()*40) + 60;
+        const stress = ['Normal  சாதாரணம்','Mild Stress  மிதமான அழுத்தம்','High Stress  அதிக அழுத்தம்'][Math.floor(Math.random()*3)];
+        const condition = ['Healthy  ஆரோக்கியம்','Possible Fatigue  சோர்வு சாத்தியம்','Dehydration risk / நீர்மின்மை அபாயம்','Venom reaction pattern detected / விஷம் தாக்கம் சாத்தியம்'][Math.floor(Math.random()*4)];
+        const suggestionArr = [
+          'Drink more water and rest.  அதிக நீர் குடித்து ஓய்வெடு.',
+          'Take deep breaths and relax.  ஆழமான சுவாசம் எடுத்து ஓய்வெடு.',
+          'Seek medical attention if symptoms persist.  அறிகுறிகள் நிலைத்தால் மருத்துவரை சந்திக்கவும்.',
+          'Condition stable — maintain regular routine.  நிலை நிலைத்துள்ளது — வழக்கமான வழிமுறையை தொடரவும்.'
+        ];
+        const suggestion = suggestionArr[Math.floor(Math.random()*suggestionArr.length)];
+
+        const reportHTML = `
+          <h2>🧠 AI Health Report</h2>
+          <p>Pulse Rate / இதயத் துடிப்பு: <span class="highlight">${pulse} bpm</span></p>
+          <p>Stress Level / அழுத்த நிலை: <span class="highlight">${stress}</span></p>
+          <p>AI Observation: <span class="highlight">${condition}</span></p>
+          <p>Suggestion / பரிந்துரை: ${suggestion}</p>
+          <p>🌿 Ancient Wisdom meets Modern AI / பண்டைய ஞானம் நவீன ஏஐ.combine</p>
+        `;
+        report.innerHTML = reportHTML;
+
+        speak(`Your pulse rate is ${pulse} beats per minute. Stress level: ${stress}. ${condition}. ${suggestion}`, 'en-US');
+        setTimeout(() => {
+          speak(`உங்கள் இதயத் துடிப்பு ${pulse} பிரதியில். அழுத்த நிலை: ${stress}. ${condition}. ${suggestion}`, 'ta-IN');
+        }, 4000);
+
+      }, 5000);
+    }
+
+    drawWave();
+  </script>
+</body>
+</html>
