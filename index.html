@@ -1,168 +1,259 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>NADI-AI v3 — The Healer Beyond Time</title>
-<style>
-  body {
-    background: radial-gradient(circle at top, #0a0a0f, #000);
-    color: #e0f7ff;
-    font-family: "Poppins", sans-serif;
-    margin: 0;
-    overflow-x: hidden;
-  }
-  h1 {
-    text-align: center;
-    color: #00ffff;
-    text-shadow: 0 0 20px #00ffee;
-    margin-top: 30px;
-    animation: glowTitle 3s ease-in-out infinite;
-  }
-  @keyframes glowTitle {
-    0% { text-shadow: 0 0 10px #00ffee; }
-    50% { text-shadow: 0 0 25px #ffd700; }
-    100% { text-shadow: 0 0 10px #00ffee; }
-  }
-  .card {
-    width: 90%;
-    max-width: 550px;
-    background: rgba(0, 0, 0, 0.6);
-    border: 1px solid rgba(0, 229, 255, 0.3);
-    border-radius: 18px;
-    margin: 20px auto;
-    padding: 20px;
-    box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
-  }
-  button {
-    display: block;
-    margin: 20px auto;
-    padding: 12px 22px;
-    font-size: 1rem;
-    color: #111;
-    background: linear-gradient(90deg, #00ffe1, #ffd700);
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: 0.3s;
-  }
-  button:hover {
-    transform: scale(1.05);
-  }
-  .pulse {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: radial-gradient(circle, #00ffe1, #0055ff);
-    margin: 20px auto;
-    animation: pulseBeat 1.5s infinite;
-  }
-  @keyframes pulseBeat {
-    0% { transform: scale(1); opacity: 0.9; }
-    50% { transform: scale(1.3); opacity: 0.6; }
-    100% { transform: scale(1); opacity: 0.9; }
-  }
-  .primaryCondition {
-    background: rgba(255, 215, 0, 0.08);
-    border: 2px solid rgba(0, 229, 255, 0.3);
-    border-radius: 10px;
-    padding: 12px;
-    margin: 10px 0;
-    text-align: center;
-    animation: glowCond 3s infinite ease-in-out;
-  }
-  @keyframes glowCond {
-    0%,100% { box-shadow: 0 0 10px rgba(0, 229, 255, 0.4); }
-    50% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.7); }
-  }
-  .footer {
-    text-align: center;
-    margin: 20px;
-    font-size: 0.8rem;
-    color: #888;
-  }
-</style>
-</head>
-<body>
-  <h1>🧬 NADI-AI v3 — The Healer Beyond Time</h1>
-  <div class="card">
-    <div class="pulse"></div>
-    <button onclick="startScan()">🔍 Begin AI Nadi Scan</button>
-    <div id="report" style="display:none;">
-      <div id="primaryCondBox" class="primaryCondition"></div>
-      <h2>AI Health Report / செயற்கை நுண்ணறிவு நல அறிக்கை</h2>
-      <p id="reportText"></p>
-    </div>
-  </div>
-  <div class="footer">Created by MV Innovators — Visionary Innovator | Demo Only</div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nadi AI - Demo Web</title>
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React + ReactDOM via CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <!-- Recharts for charts -->
+    <script src="https://unpkg.com/recharts/umd/Recharts.min.js"></script>
+    <!-- Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  </head>
+  <body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-6">
+    <div id="root" class="w-full max-w-3xl bg-white shadow-xl rounded-2xl p-8"></div>
 
-  <audio id="heartbeat" loop>
-    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_0b49a3b0c7.mp3?filename=heartbeat-11013.mp3" type="audio/mpeg">
-  </audio>
+    <script type="text/babel">
+      const { useState } = React;
+      const { PieChart, Pie, Cell, Tooltip } = Recharts;
 
-<script>
-const demoConditions = [
-  "Type 2 Diabetes Risk", "Cardiac Rhythm Instability", "Stress Response Overload",
-  "Neural Fatigue Syndrome", "Energy Regulation Imbalance", "Bioelectric Rhythm Drift",
-  "Dehydration and Electrolyte Deficit", "Toxin Reaction Alert", "Viral Fatigue Pattern",
-  "Immunity Fluctuation Index", "Hormonal Stress Disturbance", "Cognitive Load Syndrome",
-  "Quantum Stress Disorder", "Micro-circulation Delay", "Peripheral Signal Lag",
-  "Respiratory Sync Disturbance", "Venom Interaction Pattern", "Thermal Stress Instability",
-  "Cellular Energy Drop", "Bio-signal Instability", "Neuro-Oxidation Pattern",
-  "Pulse Frequency Anomaly", "Systemic Energy Imbalance", "Metabolic Drift Signature"
-];
+      const ONLINE_MAPPING_URL = "https://example.com/pulse_to_bloodgroup.json"; // replace with your real online JSON
 
-function randomConditions(num) {
-  const shuffled = [...demoConditions].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, num);
-}
+      const App = () => {
+        const [bpm, setBpm] = useState(72);
+        const [rhythm, setRhythm] = useState("regular");
+        const [gender, setGender] = useState("male");
+        const [mapping, setMapping] = useState(null);
+        const [result, setResult] = useState(null);
+        const [status, setStatus] = useState("");
 
-function speakBoth(en, ta) {
-  const enUtter = new SpeechSynthesisUtterance(en);
-  const taUtter = new SpeechSynthesisUtterance(ta);
-  enUtter.lang = 'en-IN';
-  taUtter.lang = 'ta-IN';
-  speechSynthesis.speak(enUtter);
-  speechSynthesis.speak(taUtter);
-}
+        const fetchMapping = async () => {
+          setStatus("Fetching online blood group mapping...");
+          try {
+            const res = await axios.get(ONLINE_MAPPING_URL);
+            setMapping(res.data);
+            setStatus("Online mapping loaded successfully ✅");
+          } catch (err) {
+            setStatus("Failed to fetch mapping ❌ (check your URL)");
+          }
+        };
 
-function startScan() {
-  const heartbeat = document.getElementById("heartbeat");
-  heartbeat.play();
+        const matchBloodGroup = () => {
+          if (!mapping || !mapping.mappings) {
+            setStatus("Mapping not loaded yet!");
+            return;
+          }
+          const match = mapping.mappings.find(
+            (m) =>
+              (m.pulse_pattern.toLowerCase() === rhythm ||
+                m.pulse_pattern.toLowerCase() === "any") &&
+              bpm >= m.bpm_min &&
+              bpm <= m.bpm_max
+          );
+          return match ? match.blood_group : "Unknown";
+        };
 
-  const reportBox = document.getElementById("report");
-  reportBox.style.display = "none";
+        const generateDemo = () => {
+          const bloodGroup = matchBloodGroup() || "Unknown";
+          const rand = (min, max) => +(Math.random() * (max - min) + min).toFixed(1);
 
-  setTimeout(() => {
-    heartbeat.pause();
-    heartbeat.currentTime = 0;
-    const primary = demoConditions[Math.floor(Math.random() * demoConditions.length)];
-    const randomList = randomConditions(5);
-    const englishReport = `
-      Primary Condition (Simulation): ${primary}<br><br>
-      Possible Conditions:<br> - ${randomList.join("<br> - ")}<br><br>
-      Observation: AI Nadi patterns suggest irregular rhythm intensity.<br>
-      Advice: Maintain hydration, rest adequately, and follow healthy routines.<br>
-      <br><b>⚠️ This is a simulation demo. Not a real medical diagnosis.</b>
-    `;
-    const tamilReport = `
-      முதன்மை நோய் (மாதிரி): ${primary}<br><br>
-      சாத்தியமான நிலைகள்:<br> - ${randomList.join("<br> - ")}<br><br>
-      கவனம்: நாதி முறைமைகள் ஒழுங்கற்ற துடிப்பு வலிமையைக் காட்டுகின்றன.<br>
-      பரிந்துரை: போதுமான நீர், ஓய்வு மற்றும் ஆரோக்கிய பழக்கங்கள் கடைபிடிக்கவும்.<br>
-      <br><b>⚠️ இது மாதிரி அறிக்கை மட்டுமே; மருத்துவ தீர்மானம் அல்ல.</b>
-    `;
-    document.getElementById("primaryCondBox").innerHTML = `<b>Primary Condition (Simulation): ${primary}</b>`;
-    document.getElementById("reportText").innerHTML = englishReport + "<hr>" + tamilReport;
-    reportBox.style.display = "block";
+          const sugar = rand(70, 160);
+          const systolic = rand(95, 150);
+          const diastolic = rand(60, 95);
+          const spo2 = rand(92, 99);
 
-    const voiceEN = `Simulation result. Primary condition detected: ${primary}. Other possible conditions: ${randomList.join(", ")}. This is a simulation only.`;
-    const voiceTA = `மாதிரி முடிவு. முதன்மை நோய் கண்டறியப்பட்டது: ${primary}. மற்ற சாத்தியமான நிலைகள்: ${randomList.join(", ")}. இது மாதிரி மட்டுமே; மருத்துவ தீர்மானம் அல்ல.`;
-    speakBoth(voiceEN, voiceTA);
-  }, 4000);
-}
-</script>
-</body>
+          const data = { bloodGroup, sugar, systolic, diastolic, spo2 };
+
+          if (gender === "male") {
+            const risk =
+              5 +
+              (bpm - 60) * 0.6 +
+              Math.max(0, sugar - 90) * 0.2 +
+              Math.max(0, systolic - 120) * 0.3 +
+              (rhythm === "irregular" ? 10 : 0);
+            data.heartRisk = Math.min(99, +(risk + rand(-5, 5)).toFixed(1));
+          } else {
+            let prob = 5;
+            if (rhythm === "irregular") prob += 8;
+            if (spo2 < 96) prob += 5;
+            prob = Math.min(95, prob + rand(-3, 10));
+            data.pregnancyProb = +prob.toFixed(1);
+            data.pregnancyPositive = prob > 20 && Math.random() < prob / 100;
+          }
+
+          setResult(data);
+          setStatus("Demo results generated ✅");
+        };
+
+        return (
+          <div className="space-y-6">
+            <h1 className="text-3xl font-bold text-center text-blue-700">Nadi AI — Demo (Web)</h1>
+            <p className="text-sm text-gray-500 text-center">
+              Pulse-based AI health demo — for educational use only
+            </p>
+
+            {/* Inputs */}
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Pulse (BPM)</label>
+                <input
+                  type="number"
+                  value={bpm}
+                  onChange={(e) => setBpm(+e.target.value)}
+                  className="mt-1 w-full border rounded-lg p-2 text-center"
+                  min="30"
+                  max="220"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Rhythm</label>
+                <select
+                  value={rhythm}
+                  onChange={(e) => setRhythm(e.target.value)}
+                  className="mt-1 w-full border rounded-lg p-2"
+                >
+                  <option value="regular">Regular</option>
+                  <option value="irregular">Irregular</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Gender</label>
+                <select
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                  className="mt-1 w-full border rounded-lg p-2"
+                >
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex justify-center space-x-3">
+              <button
+                onClick={fetchMapping}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+              >
+                Fetch Mapping
+              </button>
+              <button
+                onClick={generateDemo}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+              >
+                Generate Demo
+              </button>
+            </div>
+
+            {/* Status */}
+            {status && <p className="text-sm text-gray-600 text-center">{status}</p>}
+
+            {/* Results */}
+            {result && (
+              <div className="bg-gray-50 p-4 rounded-xl shadow-inner space-y-3">
+                <h2 className="text-xl font-semibold text-gray-800 text-center mb-2">
+                  Diagnostic Report
+                </h2>
+                <div className="grid grid-cols-2 gap-4 text-center">
+                  <div className="bg-white rounded-lg p-3 shadow-sm">
+                    <p className="text-sm text-gray-500">Blood Group</p>
+                    <p className="text-xl font-bold text-blue-700">{result.bloodGroup}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 shadow-sm">
+                    <p className="text-sm text-gray-500">Sugar (mg/dL)</p>
+                    <p className="text-xl font-bold">{result.sugar}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 shadow-sm">
+                    <p className="text-sm text-gray-500">Blood Pressure</p>
+                    <p className="text-xl font-bold">
+                      {result.systolic}/{result.diastolic}
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 shadow-sm">
+                    <p className="text-sm text-gray-500">SpO₂ (%)</p>
+                    <p className="text-xl font-bold">{result.spo2}</p>
+                  </div>
+                </div>
+
+                {/* Conditional output */}
+                {gender === "male" ? (
+                  <div className="mt-6 text-center">
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                      Heart Attack Risk (%)
+                    </h3>
+                    <PieChart width={220} height={180}>
+                      <Pie
+                        dataKey="value"
+                        data={[
+                          { name: "Risk", value: result.heartRisk },
+                          { name: "Safe", value: 100 - result.heartRisk },
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={70}
+                        paddingAngle={5}
+                      >
+                        <Cell fill="#dc2626" />
+                        <Cell fill="#16a34a" />
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                    <p className="text-xl font-bold text-red-600">
+                      {result.heartRisk.toFixed(1)}%
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-6 text-center">
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                      Pregnancy Probability (%)
+                    </h3>
+                    <PieChart width={220} height={180}>
+                      <Pie
+                        dataKey="value"
+                        data={[
+                          { name: "Probability", value: result.pregnancyProb },
+                          { name: "None", value: 100 - result.pregnancyProb },
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={70}
+                        paddingAngle={5}
+                      >
+                        <Cell fill="#2563eb" />
+                        <Cell fill="#d1d5db" />
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                    <p
+                      className={`text-xl font-bold ${
+                        result.pregnancyPositive ? "text-green-600" : "text-gray-600"
+                      }`}
+                    >
+                      {result.pregnancyPositive ? "Positive" : "Negative"}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Disclaimer */}
+            <p className="text-xs text-center text-red-500 mt-4">
+              ⚠️ Demo only — not a medical device or diagnostic tool.
+            </p>
+          </div>
+        );
+      };
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+      const ONLINE_MAPPING_URL = "https://github.com/maniarasan-prog/nadi-ai/blob/main/fetch.json";
+
+    </script>
+  </body>
 </html>
-
